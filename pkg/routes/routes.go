@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"github.com/ekrresa/invoice-api/pkg/controllers"
+	"github.com/ekrresa/invoice-api/pkg/handlers"
 	"github.com/ekrresa/invoice-api/pkg/repository"
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
@@ -9,7 +9,7 @@ import (
 
 func RegisterRoutes(r *chi.Mux, db *gorm.DB) {
 	repo := repository.NewRepository(db)
-	ctrl := controllers.NewUserController(repo)
+	userHandler := handlers.NewUserController(repo)
 
-	r.Post("/users", ctrl.RegisterUser)
+	r.Post("/users", userHandler.RegisterUser)
 }

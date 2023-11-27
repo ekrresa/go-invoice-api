@@ -1,4 +1,4 @@
-package controllers
+package handlers
 
 import (
 	"encoding/json"
@@ -23,42 +23,58 @@ func NewUserController(repo repository.UserRepository) *UserController {
 	}
 }
 
-type UserBody struct {
+type user struct {
 	Name     string `json:"name" validate:"required"`
 	Email    string `json:"email" validate:"email,required"`
 	Password string `json:"password" validate:"required"`
 }
 
 func (c *UserController) RegisterUser(w http.ResponseWriter, r *http.Request) {
-	var userBody UserBody
+	var responseBody user
 	var unmarshalErr *json.UnmarshalTypeError
 
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
-	decodeErr := decoder.Decode(&userBody)
+	decodeErr := decoder.Decode(&responseBody)
 
 	if decodeErr != nil {
 		if errors.As(decodeErr, &unmarshalErr) {
 			utils.ErrorResponse(w, "Wrong Type provided for field "+unmarshalErr.Field, http.StatusBadRequest)
 		} else {
-			utils.ErrorResponse(w, "Unable to parse body", http.StatusBadRequest)
+			utils.ErrorResponse(w, "Unable to parse body", http.StatusInternalServerError)
 		}
 		return
 	}
 
 	validate := validator.New()
-	validateErr := validate.Struct(userBody)
+	validateErr := validate.Struct(&responseBody)
 
 	if validateErr != nil {
 		utils.ErrorResponse(w, validateErr.Error(), http.StatusBadRequest)
 		return
 	}
 
+	_, userByEmailError := c.repo.GetUserByEmail(responseBody.Email)
+
+	if userByEmailError == nil {
+		utils.ErrorResponse(w, "User already exists", http.StatusBadRequest)
+		return
+	}
+
 	newUser := &models.User{}
 	newUser.ID = strings.ToLower(ulid.Make().String())
-	newUser.Name = userBody.Name
-	newUser.Email = userBody.Email
-	newUser.Password = userBody.Password
+	newUser.Name = responseBody.Name
+	newUser.Email = responseBody.Email
+	newUser.ApiKey = strings.ToLower(ulid.Make().String())
+
+	userPassword, passwordError := utils.HashPassword(responseBody.Password)
+
+	if passwordError != nil {
+		utils.ErrorResponse(w, "Password failed validation", http.StatusInternalServerError)
+		return
+	}
+
+	newUser.Password = userPassword
 
 	createErr := c.repo.CreateUser(newUser)
 
@@ -67,5 +83,8 @@ func (c *UserController) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.SuccessResponse(w, &newUser, "User created", http.StatusCreated)
+	responsePayload := make(map[string]string)
+	responsePayload["api_key"] = newUser.ApiKey
+
+	utils.SuccessResponse(w, &responsePayload, "User created", http.StatusCreated)
 }
