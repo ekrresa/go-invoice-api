@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
@@ -26,22 +25,21 @@ func NewUserController(repo repository.UserRepository) *UserController {
 type user struct {
 	Name     string `json:"name" validate:"required"`
 	Email    string `json:"email" validate:"email,required"`
-	Password string `json:"password" validate:"required"`
+	Password string `json:"password" validate:"required,len=8"`
 }
 
 func (c *UserController) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var responseBody user
-	var unmarshalErr *json.UnmarshalTypeError
 
-	decoder := json.NewDecoder(r.Body)
-	decoder.DisallowUnknownFields()
-	decodeErr := decoder.Decode(&responseBody)
+	decodeErr := utils.DecodeJSONBody(w, r.Body, &responseBody)
 
 	if decodeErr != nil {
-		if errors.As(decodeErr, &unmarshalErr) {
-			utils.ErrorResponse(w, "Wrong Type provided for field "+unmarshalErr.Field, http.StatusBadRequest)
+		var requestError *utils.RequestError
+
+		if errors.As(decodeErr, &requestError) {
+			utils.ErrorResponse(w, requestError.Message, requestError.StatusCode)
 		} else {
-			utils.ErrorResponse(w, "Unable to parse body", http.StatusInternalServerError)
+			utils.ErrorResponse(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 		return
 	}
