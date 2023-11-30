@@ -7,6 +7,7 @@ import (
 type UserRepository interface {
 	CreateUser(user *models.User) error
 	GetUserByEmail(email string) (*models.User, error)
+	UpdateUser(user *models.User) error
 }
 
 func (r *Repository) CreateUser(user *models.User) error {
@@ -16,6 +17,11 @@ func (r *Repository) CreateUser(user *models.User) error {
 
 func (r *Repository) GetUserByEmail(email string) (*models.User, error) {
 	user := &models.User{}
-	err := r.db.Select("ID", "Name", "Email", "ApiKey").Where("email = ?", email).First(&user).Error
+	err := r.db.Select("ID", "Name", "Email", "Password", "ApiKey").Where("email = ?", email).First(&user).Error
 	return user, err
+}
+
+func (r *Repository) UpdateUser(user *models.User) error {
+	err := r.db.Save(user).Error
+	return err
 }

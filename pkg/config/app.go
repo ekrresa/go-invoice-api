@@ -15,7 +15,7 @@ func ConnectDatabase() (*gorm.DB, error) {
 		return nil, errors.New("CONN_STRING not set")
 	}
 
-	db, err := gorm.Open(postgres.Open(connUrl), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(connUrl), &gorm.Config{SkipDefaultTransaction: true})
 
 	if err != nil {
 		return nil, err
