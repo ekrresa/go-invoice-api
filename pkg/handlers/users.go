@@ -25,7 +25,7 @@ func NewUserController(repo repository.UserRepository) *UserController {
 type user struct {
 	Name     string `json:"name" validate:"required"`
 	Email    string `json:"email" validate:"email,required"`
-	Password string `json:"password" validate:"required,len=8"`
+	Password string `json:"password" validate:"required,min=8"`
 }
 
 func (c *UserController) RegisterUser(w http.ResponseWriter, r *http.Request) {
@@ -85,7 +85,7 @@ func (c *UserController) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 type regeneratePayload struct {
 	Email    string `json:"email" validate:"email,required"`
-	Password string `json:"password" validate:"required,len=8"`
+	Password string `json:"password" validate:"required,min=8"`
 }
 
 func (c *UserController) RegenerateApiKey(w http.ResponseWriter, r *http.Request) {
