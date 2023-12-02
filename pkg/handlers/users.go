@@ -12,12 +12,12 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
-type UserController struct {
-	repo repository.UserRepository
+type UserHandler struct {
+	repo repository.Repository
 }
 
-func NewUserController(repo repository.UserRepository) *UserController {
-	return &UserController{
+func NewUserHandler(repo repository.Repository) *UserHandler {
+	return &UserHandler{
 		repo: repo,
 	}
 }
@@ -28,7 +28,7 @@ type user struct {
 	Password string `json:"password" validate:"required,min=8"`
 }
 
-func (c *UserController) RegisterUser(w http.ResponseWriter, r *http.Request) {
+func (c *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var responseBody user
 
 	decodeErr := utils.DecodeJSONBody(w, r.Body, &responseBody)
@@ -88,7 +88,7 @@ type regeneratePayload struct {
 	Password string `json:"password" validate:"required,min=8"`
 }
 
-func (c *UserController) RegenerateApiKey(w http.ResponseWriter, r *http.Request) {
+func (c *UserHandler) RegenerateApiKey(w http.ResponseWriter, r *http.Request) {
 	var responseBody regeneratePayload
 
 	decodeErr := utils.DecodeJSONBody(w, r.Body, &responseBody)
