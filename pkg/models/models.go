@@ -47,5 +47,5 @@ type InvoiceItem struct {
 	Price     uint      `gorm:"not null" json:"price"`
 	CreatedAt time.Time `json:"created_at"`
 	InvoiceID string    `gorm:"not null;size:50" json:"invoice_id"`
-	Invoice   Invoice   `json:"invoice"`
+	Invoice   Invoice   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"invoice"`
 }
