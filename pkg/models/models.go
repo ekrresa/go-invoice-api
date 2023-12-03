@@ -19,7 +19,7 @@ type Invoice struct {
 	ID            string        `gorm:"primaryKey;size:50" json:"id"`
 	UserID        string        `gorm:"user_id;size:50" json:"user_id"`
 	Description   string        `json:"description"`
-	Status        InvoiceStatus `gorm:"type:enum('open','draft','paid','void');default:draft" json:"status"`
+	Status        InvoiceStatus `gorm:"default:draft" json:"status"`
 	CustomerName  string        `gorm:"customer_name;not null;size:255" json:"customer_name"`
 	CustomerEmail string        `gorm:"customer_email;size:255" json:"customer_email"`
 	Underpay      bool          `gorm:"default:false" json:"underpay"`
