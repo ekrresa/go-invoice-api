@@ -7,9 +7,9 @@ import (
 type User struct {
 	ID        string    `gorm:"primaryKey;size:50" json:"id"`
 	Name      string    `gorm:"not null;size:255" json:"name"`
-	Email     string    `gorm:"not null;size:255;unique;uniqueIndex" json:"email"`
+	Email     string    `gorm:"not null;size:255;uniqueIndex" json:"email"`
 	Password  string    `gorm:"not null;size:255" json:"password"`
-	ApiKey    string    `gorm:"not null;size:255" json:"api_key"`
+	ApiKey    string    `gorm:"index;not null;size:255" json:"api_key"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Invoices  []Invoice `json:"invoices"`
@@ -19,7 +19,7 @@ type Invoice struct {
 	ID            string        `gorm:"primaryKey;size:50" json:"id"`
 	UserID        string        `gorm:"user_id;size:50" json:"user_id"`
 	Description   string        `json:"description"`
-	Status        InvoiceStatus `gorm:"default:draft" json:"status"`
+	Status        InvoiceStatus `gorm:"type:enum('open','draft','paid','void');default:draft" json:"status"`
 	CustomerName  string        `gorm:"customer_name;not null;size:255" json:"customer_name"`
 	CustomerEmail string        `gorm:"customer_email;size:255" json:"customer_email"`
 	Underpay      bool          `gorm:"default:false" json:"underpay"`
@@ -33,11 +33,10 @@ type Invoice struct {
 type InvoiceStatus string
 
 const (
-	Open    InvoiceStatus = "open"
-	Draft   InvoiceStatus = "draft"
-	Paid    InvoiceStatus = "paid"
-	Void    InvoiceStatus = "void"
-	Deleted InvoiceStatus = "deleted"
+	Open  InvoiceStatus = "open"
+	Draft InvoiceStatus = "draft"
+	Paid  InvoiceStatus = "paid"
+	Void  InvoiceStatus = "void"
 )
 
 type InvoiceItem struct {

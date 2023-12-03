@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -85,6 +87,14 @@ func SuccessResponse(w http.ResponseWriter, data interface{}, message string, st
 	jsonResponse, _ := json.Marshal(response)
 
 	w.Write(jsonResponse)
+}
+
+func HashApiKey(apiKey string) string {
+	h := sha256.New()
+	h.Write([]byte(apiKey))
+	bs := h.Sum(nil)
+
+	return base64.URLEncoding.EncodeToString(bs)
 }
 
 func HashPassword(password string) (string, error) {

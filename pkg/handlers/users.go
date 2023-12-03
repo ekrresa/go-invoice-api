@@ -22,16 +22,10 @@ func NewUserHandler(repo repository.Repository) *UserHandler {
 	}
 }
 
-type user struct {
-	Name     string `json:"name" validate:"required"`
-	Email    string `json:"email" validate:"email,required"`
-	Password string `json:"password" validate:"required,min=8"`
-}
-
 func (c *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
-	var responseBody user
+	var requestBody models.RegisterUserPayload
 
-	decodeErr := utils.DecodeJSONBody(w, r.Body, &responseBody)
+	decodeErr := utils.DecodeJSONBody(w, r.Body, &requestBody)
 
 	if decodeErr != nil {
 		var requestError *utils.RequestError
@@ -45,25 +39,29 @@ func (c *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	validate := validator.New()
-	validateErr := validate.Struct(&responseBody)
+	validateErr := validate.Struct(&requestBody)
 	if validateErr != nil {
 		utils.ErrorResponse(w, validateErr.Error(), http.StatusBadRequest)
 		return
 	}
 
-	_, userByEmailError := c.repo.GetUserByEmail(responseBody.Email)
+	_, userByEmailError := c.repo.GetUserByEmail(requestBody.Email)
 	if userByEmailError == nil {
 		utils.ErrorResponse(w, "User already exists", http.StatusBadRequest)
 		return
 	}
 
+	// Generate API key
+	apiKey := ulid.Make().String()
+	apiKeyHash := utils.HashApiKey(apiKey)
+
 	newUser := &models.User{}
 	newUser.ID = strings.ToLower(ulid.Make().String())
-	newUser.Name = responseBody.Name
-	newUser.Email = responseBody.Email
-	newUser.ApiKey = strings.ToLower(ulid.Make().String())
+	newUser.Name = requestBody.Name
+	newUser.Email = requestBody.Email
+	newUser.ApiKey = apiKeyHash
 
-	userPassword, passwordError := utils.HashPassword(responseBody.Password)
+	userPassword, passwordError := utils.HashPassword(requestBody.Password)
 	if passwordError != nil {
 		utils.ErrorResponse(w, "Password failed validation", http.StatusInternalServerError)
 		return
@@ -78,20 +76,15 @@ func (c *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responsePayload := make(map[string]string)
-	responsePayload["api_key"] = newUser.ApiKey
+	responsePayload["api_key"] = apiKey
 
 	utils.SuccessResponse(w, &responsePayload, "User created", http.StatusCreated)
 }
 
-type regeneratePayload struct {
-	Email    string `json:"email" validate:"email,required"`
-	Password string `json:"password" validate:"required,min=8"`
-}
-
 func (c *UserHandler) RegenerateApiKey(w http.ResponseWriter, r *http.Request) {
-	var responseBody regeneratePayload
+	var requestBody models.APIKeyRegeneratePayload
 
-	decodeErr := utils.DecodeJSONBody(w, r.Body, &responseBody)
+	decodeErr := utils.DecodeJSONBody(w, r.Body, &requestBody)
 	if decodeErr != nil {
 		var requestError *utils.RequestError
 
@@ -104,19 +97,19 @@ func (c *UserHandler) RegenerateApiKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	validate := validator.New()
-	validateErr := validate.Struct(&responseBody)
+	validateErr := validate.Struct(&requestBody)
 	if validateErr != nil {
 		utils.ErrorResponse(w, validateErr.Error(), http.StatusBadRequest)
 		return
 	}
 
-	user, userByEmailError := c.repo.GetUserByEmail(responseBody.Email)
+	user, userByEmailError := c.repo.GetUserByEmail(requestBody.Email)
 	if userByEmailError != nil {
 		utils.ErrorResponse(w, "Invalid email/password", http.StatusBadRequest)
 		return
 	}
 
-	passwordIsCorrect := utils.CheckPasswordHash(responseBody.Password, user.Password)
+	passwordIsCorrect := utils.CheckPasswordHash(requestBody.Password, user.Password)
 	if !passwordIsCorrect {
 		utils.ErrorResponse(w, "Invalid email/password", http.StatusBadRequest)
 		return
