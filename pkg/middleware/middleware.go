@@ -27,14 +27,24 @@ func (m *Middleware) AuthenticateApiKey(fn func(http.ResponseWriter, *http.Reque
 			return
 		}
 
-		apiKeyHash := utils.HashApiKey(apiKey)
+		var currentUser *models.UserWithoutPassword
 
-		user, userErr := m.db.GetUserByApiKey(apiKeyHash)
-		if userErr != nil {
-			utils.ErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
-			return
+		var cachedUser, found = utils.GetUserFromCache(apiKey)
+
+		if !found {
+			apiKeyHash := utils.HashApiKey(apiKey)
+			user, userErr := m.db.GetUserByApiKey(apiKeyHash)
+
+			if userErr != nil {
+				utils.ErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+			utils.CacheUser(apiKey, *user)
+			currentUser = user
+		} else {
+			currentUser = cachedUser
 		}
 
-		fn(w, r, user)
+		fn(w, r, currentUser)
 	}
 }

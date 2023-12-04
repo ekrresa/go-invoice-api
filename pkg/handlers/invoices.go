@@ -62,7 +62,7 @@ func (c *invoiceHandler) CreateInvoice(w http.ResponseWriter, r *http.Request, u
 		Underpay:      requestBody.Underpay,
 		Currency:      requestBody.Currency,
 		Total:         requestBody.Total,
-		DueDate:       time.Now().Add(time.Duration(time.Now().Day() + 12)),
+		DueDate:       time.Now().Add(time.Duration(time.Now().Day() * 12)),
 	}
 
 	var newInvoiceItems = make([]models.InvoiceItem, len(requestBody.Items))
