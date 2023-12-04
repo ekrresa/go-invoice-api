@@ -24,7 +24,7 @@ type Invoice struct {
 	CustomerEmail string        `gorm:"customer_email;size:255" json:"customer_email"`
 	Underpay      bool          `gorm:"default:false" json:"underpay"`
 	Currency      string        `gorm:"default:NGN;size:5" json:"currency"`
-	Total         uint64        `gorm:"not null" json:"total"`
+	Total         uint          `gorm:"not null" json:"total"`
 	DueDate       time.Time     `gorm:"not null" json:"due_date"`
 	CreatedAt     time.Time     `gorm:"created_at" json:"created_at"`
 	UpdatedAt     time.Time     `gorm:"updated_at" json:"updated_at"`
