@@ -87,3 +87,14 @@ func (c *invoiceHandler) CreateInvoice(w http.ResponseWriter, r *http.Request, u
 
 	utils.SuccessResponse(w, &newInvoice, "Invoice created", http.StatusOK)
 }
+
+func (c *invoiceHandler) ListInvoicesOfUser(w http.ResponseWriter, r *http.Request, user *models.UserWithoutPassword) {
+	var invoices, err = c.repo.ListInvoicesOfUser(user.ID)
+
+	if err != nil {
+		utils.ErrorResponse(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	utils.SuccessResponse(w, &invoices, "Invoices retrieved", http.StatusOK)
+}

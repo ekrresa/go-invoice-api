@@ -17,7 +17,7 @@ type User struct {
 
 type Invoice struct {
 	ID            string        `gorm:"primaryKey;size:50" json:"id"`
-	UserID        string        `gorm:"user_id;size:50" json:"user_id"`
+	UserID        string        `gorm:"index;user_id;size:50" json:"user_id"`
 	Description   string        `json:"description"`
 	Status        InvoiceStatus `gorm:"default:draft" json:"status"`
 	CustomerName  string        `gorm:"customer_name;not null;size:255" json:"customer_name"`

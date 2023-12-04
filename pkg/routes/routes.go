@@ -20,4 +20,5 @@ func RegisterRoutes(r *chi.Mux, db *gorm.DB) {
 	// r.Post("/users/reset_password", userHandler.RegenerateApiKey)
 
 	r.Post("/invoices", middleware.AuthenticateApiKey(invoiceHandler.CreateInvoice))
+	r.Get("/invoices", middleware.AuthenticateApiKey(invoiceHandler.ListInvoicesOfUser))
 }
