@@ -5,10 +5,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type InvoiceRepository interface {
-	CreateInvoice() error
-}
-
 func (r *Repository) CreateInvoice(invoice *models.Invoice, invoiceItems *[]models.InvoiceItem) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(invoice).Error; err != nil {
@@ -31,3 +27,10 @@ func (r *Repository) ListInvoicesOfUser(userID string) ([]models.Invoice, error)
 
 	return invoices, error
 }
+
+// func (r *Repository) GetInvoice(userID string) ([]models.Invoice, error) {
+// 	var invoices []models.Invoice
+// 	error := r.db.Table("invoices").Where("user_id = ?", userID).Find(&invoices).Error
+
+// 	return invoices, error
+// }
