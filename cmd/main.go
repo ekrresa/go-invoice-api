@@ -7,6 +7,7 @@ import (
 
 	"github.com/ekrresa/invoice-api/pkg/config"
 	"github.com/ekrresa/invoice-api/pkg/routes"
+	"github.com/ekrresa/invoice-api/pkg/utils"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -31,7 +32,25 @@ func main() {
 	r.Use(middleware.AllowContentType("application/json"))
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Logger)
-	r.Use(httprate.LimitByIP(100, 1*time.Minute))
+
+	// Rate limit by IP address and endpoint
+	r.Use(httprate.Limit(
+		10,
+		5*time.Second,
+		httprate.WithKeyFuncs(httprate.KeyByIP, httprate.KeyByEndpoint),
+	))
+
+	// Rate limit by API key
+	r.Use(httprate.Limit(
+		100,
+		1*time.Minute,
+		httprate.WithKeyFuncs(func(r *http.Request) (string, error) {
+			return r.Header.Get("X-API-Key"), nil
+		}),
+		httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
+			utils.ErrorResponse(w, "Too many requests", http.StatusTooManyRequests)
+		})))
+
 	r.Use(middleware.RequestSize(1048576))
 	r.Use(middleware.StripSlashes)
 	r.Use(middleware.Recoverer)
