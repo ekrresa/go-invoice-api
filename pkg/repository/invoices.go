@@ -21,16 +21,19 @@ func (r *Repository) CreateInvoice(invoice *models.Invoice, invoiceItems *[]mode
 	})
 }
 
-func (r *Repository) ListInvoicesOfUser(userID string) ([]models.Invoice, error) {
+func (r *Repository) ListInvoicesOfUser(userID string) (*[]models.Invoice, error) {
 	var invoices []models.Invoice
 	error := r.db.Table("invoices").Where("user_id = ?", userID).Find(&invoices).Error
 
-	return invoices, error
+	return &invoices, error
 }
 
-// func (r *Repository) GetInvoice(userID string) ([]models.Invoice, error) {
-// 	var invoices []models.Invoice
-// 	error := r.db.Table("invoices").Where("user_id = ?", userID).Find(&invoices).Error
+// Include the invoice items
+func (r *Repository) GetInvoice(invoiceID string, userID string) (*models.Invoice, error) {
+	var invoice models.Invoice
+	error := r.db.Table("invoices").
+		Where(&models.Invoice{ID: invoiceID, UserID: userID}).
+		Joins("InvoiceItem").Find(&invoice).Error
 
-// 	return invoices, error
-// }
+	return &invoice, error
+}

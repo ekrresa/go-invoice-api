@@ -2,13 +2,13 @@ package utils
 
 import "github.com/ekrresa/invoice-api/pkg/models"
 
-var apiKeyCache = make(map[string]models.UserWithoutPassword)
+var apiKeyCache = make(map[string]models.User)
 
-func CacheUser(key string, user models.UserWithoutPassword) {
+func CacheUser(key string, user models.User) {
 	apiKeyCache[key] = user
 }
 
-func GetUserFromCache(key string) (*models.UserWithoutPassword, bool) {
+func GetUserFromCache(key string) (*models.User, bool) {
 	var user, found = apiKeyCache[key]
 
 	return &user, found

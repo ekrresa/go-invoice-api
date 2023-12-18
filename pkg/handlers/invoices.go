@@ -9,6 +9,7 @@ import (
 	"github.com/ekrresa/invoice-api/pkg/models"
 	"github.com/ekrresa/invoice-api/pkg/repository"
 	"github.com/ekrresa/invoice-api/pkg/utils"
+	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"github.com/oklog/ulid/v2"
 )
@@ -23,7 +24,7 @@ func NewInvoiceHandler(repo repository.Repository) *invoiceHandler {
 	}
 }
 
-func (c *invoiceHandler) CreateInvoice(w http.ResponseWriter, r *http.Request, user *models.UserWithoutPassword) {
+func (c *invoiceHandler) CreateInvoice(w http.ResponseWriter, r *http.Request, user *models.User) {
 	var requestBody models.CreateInvoicePayload
 
 	decodeErr := utils.DecodeJSONBody(w, r.Body, &requestBody)
@@ -53,16 +54,16 @@ func (c *invoiceHandler) CreateInvoice(w http.ResponseWriter, r *http.Request, u
 	// }
 
 	newInvoice := models.Invoice{
-		ID:            strings.ToLower(string(ulid.Make().String())),
-		UserID:        user.ID,
-		Description:   requestBody.Description,
-		Status:        models.InvoiceStatus(requestBody.Status),
-		CustomerName:  requestBody.CustomerName,
-		CustomerEmail: requestBody.CustomerEmail,
-		Underpay:      requestBody.Underpay,
-		Currency:      requestBody.Currency,
-		Total:         requestBody.Total,
-		DueDate:       time.Now().Add(time.Duration(time.Now().Day() * 12)),
+		ID:                    strings.ToLower(string(ulid.Make().String())),
+		UserID:                user.ID,
+		Description:           requestBody.Description,
+		Status:                models.InvoiceStatus(requestBody.Status),
+		CustomerName:          requestBody.CustomerName,
+		CustomerEmail:         requestBody.CustomerEmail,
+		AllowMultiplePayments: requestBody.AllowMultiplePayments,
+		Currency:              requestBody.Currency,
+		Total:                 requestBody.Total,
+		DueDate:               time.Now().Add(time.Duration(time.Now().Day() * 12)),
 	}
 
 	var newInvoiceItems = make([]models.InvoiceItem, len(requestBody.Items))
@@ -88,7 +89,7 @@ func (c *invoiceHandler) CreateInvoice(w http.ResponseWriter, r *http.Request, u
 	utils.SuccessResponse(w, &newInvoice, "Invoice created", http.StatusOK)
 }
 
-func (c *invoiceHandler) ListInvoicesOfUser(w http.ResponseWriter, r *http.Request, user *models.UserWithoutPassword) {
+func (c *invoiceHandler) ListInvoicesOfUser(w http.ResponseWriter, r *http.Request, user *models.User) {
 	var invoices, err = c.repo.ListInvoicesOfUser(user.ID)
 
 	if err != nil {
@@ -97,4 +98,21 @@ func (c *invoiceHandler) ListInvoicesOfUser(w http.ResponseWriter, r *http.Reque
 	}
 
 	utils.SuccessResponse(w, &invoices, "Invoices retrieved", http.StatusOK)
+}
+
+func (c *invoiceHandler) GetInvoice(w http.ResponseWriter, r *http.Request, user *models.User) {
+	var invoiceID = chi.URLParam(r, "invoiceID")
+	var invoice, err = c.repo.GetInvoice(invoiceID, user.ID)
+
+	if err != nil {
+		utils.ErrorResponse(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if invoice == nil {
+		utils.ErrorResponse(w, "Invoice not found", http.StatusNotFound)
+		return
+	}
+
+	utils.SuccessResponse(w, invoice, "Invoice retrieved", http.StatusOK)
 }

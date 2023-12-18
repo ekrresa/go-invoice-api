@@ -16,18 +16,18 @@ type User struct {
 }
 
 type Invoice struct {
-	ID            string        `gorm:"primaryKey;size:50" json:"id"`
-	UserID        string        `gorm:"index;user_id;size:50" json:"user_id"`
-	Description   string        `json:"description"`
-	Status        InvoiceStatus `gorm:"default:draft" json:"status"`
-	CustomerName  string        `gorm:"customer_name;not null;size:255" json:"customer_name"`
-	CustomerEmail string        `gorm:"customer_email;size:255" json:"customer_email"`
-	Underpay      bool          `gorm:"default:false" json:"underpay"`
-	Currency      string        `gorm:"default:NGN;size:5" json:"currency"`
-	Total         uint          `gorm:"not null" json:"total"`
-	DueDate       time.Time     `gorm:"not null" json:"due_date"`
-	CreatedAt     time.Time     `gorm:"created_at" json:"created_at"`
-	UpdatedAt     time.Time     `gorm:"updated_at" json:"updated_at"`
+	ID                    string        `gorm:"primaryKey;size:50" json:"id"`
+	UserID                string        `gorm:"index;user_id;size:50" json:"user_id"`
+	Description           string        `json:"description"`
+	Status                InvoiceStatus `gorm:"default:draft" json:"status"`
+	CustomerName          string        `gorm:"customer_name;not null;size:255" json:"customer_name"`
+	CustomerEmail         string        `gorm:"customer_email;size:255" json:"customer_email"`
+	AllowMultiplePayments bool          `gorm:"default:false" json:"allow_multiple_payments"`
+	Currency              string        `gorm:"default:NGN;size:5" json:"currency"`
+	Total                 uint          `gorm:"not null" json:"total"`
+	DueDate               time.Time     `gorm:"not null" json:"due_date"`
+	CreatedAt             time.Time     `gorm:"created_at" json:"created_at"`
+	UpdatedAt             time.Time     `gorm:"updated_at" json:"updated_at"`
 }
 
 type InvoiceStatus string

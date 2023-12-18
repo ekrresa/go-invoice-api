@@ -18,7 +18,7 @@ func NewMiddleware(db *repository.Repository) *Middleware {
 	}
 }
 
-func (m *Middleware) AuthenticateApiKey(fn func(http.ResponseWriter, *http.Request, *models.UserWithoutPassword)) http.HandlerFunc {
+func (m *Middleware) AuthenticateApiKey(fn func(http.ResponseWriter, *http.Request, *models.User)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		apiKey := r.Header.Get("X-API-Key")
 
@@ -27,7 +27,7 @@ func (m *Middleware) AuthenticateApiKey(fn func(http.ResponseWriter, *http.Reque
 			return
 		}
 
-		var currentUser *models.UserWithoutPassword
+		var currentUser *models.User
 
 		var cachedUser, found = utils.GetUserFromCache(apiKey)
 

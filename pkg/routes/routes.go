@@ -21,4 +21,5 @@ func RegisterRoutes(r *chi.Mux, db *gorm.DB) {
 
 	r.Post("/invoices", middleware.AuthenticateApiKey(invoiceHandler.CreateInvoice))
 	r.Get("/invoices", middleware.AuthenticateApiKey(invoiceHandler.ListInvoicesOfUser))
+	r.Get("/invoices/{invoiceID}", middleware.AuthenticateApiKey(invoiceHandler.GetInvoice))
 }
