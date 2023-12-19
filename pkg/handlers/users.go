@@ -25,7 +25,7 @@ func NewUserHandler(repo repository.Repository) *UserHandler {
 func (c *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var requestBody models.CreateUserInput
 
-	decodeErr := utils.DecodeJSONBody(w, r.Body, &requestBody)
+	var decodeErr = utils.DecodeJSONBody(w, r.Body, &requestBody)
 
 	if decodeErr != nil {
 		var requestError *utils.RequestError
@@ -38,8 +38,8 @@ func (c *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	validate := validator.New()
-	validateErr := validate.Struct(&requestBody)
+	var validate = validator.New()
+	var validateErr = validate.Struct(&requestBody)
 	if validateErr != nil {
 		utils.ErrorResponse(w, validateErr.Error(), http.StatusBadRequest)
 		return
@@ -50,7 +50,7 @@ func (c *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hashedPassword, passwordError := utils.HashPassword(requestBody.Password)
+	var hashedPassword, passwordError = utils.HashPassword(requestBody.Password)
 	if passwordError != nil {
 		utils.ErrorResponse(w, "Password failed validation", http.StatusInternalServerError)
 		return
@@ -72,9 +72,9 @@ func (c *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *UserHandler) RegenerateApiKey(w http.ResponseWriter, r *http.Request) {
-	var requestBody models.APIKeyRegeneratePayload
+	var requestBody models.RegenerateAPIKeyInput
 
-	decodeErr := utils.DecodeJSONBody(w, r.Body, &requestBody)
+	var decodeErr = utils.DecodeJSONBody(w, r.Body, &requestBody)
 	if decodeErr != nil {
 		var requestError *utils.RequestError
 
@@ -86,36 +86,37 @@ func (c *UserHandler) RegenerateApiKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	validate := validator.New()
-	validateErr := validate.Struct(&requestBody)
+	var validate = validator.New()
+	var validateErr = validate.Struct(&requestBody)
 	if validateErr != nil {
 		utils.ErrorResponse(w, validateErr.Error(), http.StatusBadRequest)
 		return
 	}
 
-	user, userByEmailError := c.repo.GetUserByEmail(requestBody.Email)
+	var user, userByEmailError = c.repo.GetUserByEmail(requestBody.Email)
 	if userByEmailError != nil {
 		utils.ErrorResponse(w, "Invalid email/password", http.StatusBadRequest)
 		return
 	}
 
-	passwordIsCorrect := utils.CheckPasswordHash(requestBody.Password, user.Password)
+	var passwordIsCorrect = utils.CheckPasswordHash(requestBody.Password, user.Password)
 	if !passwordIsCorrect {
 		utils.ErrorResponse(w, "Invalid email/password", http.StatusBadRequest)
 		return
 	}
 
-	newApiKey := strings.ToLower(ulid.Make().String())
-	user.ApiKey = newApiKey
+	var newApiKey = strings.ToLower(ulid.Make().String())
+	var hashedApiKey = utils.HashApiKey(newApiKey)
 
-	updateErr := c.repo.UpdateUser(user)
-	if updateErr != nil {
+	var isUserUpdated, updateErr = c.repo.UpdateUserAPIKey(user.ID, hashedApiKey)
+	if !isUserUpdated || updateErr != nil {
 		utils.ErrorResponse(w, "Failed to regenerate api key", http.StatusBadRequest)
 		return
 	}
 
-	responsePayload := make(map[string]string)
-	responsePayload["api_key"] = newApiKey
+	var responsePayload = map[string]string{
+		"api_key": newApiKey,
+	}
 
 	utils.SuccessResponse(w, &responsePayload, "Api key regenerated", http.StatusOK)
 }

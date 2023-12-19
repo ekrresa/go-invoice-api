@@ -57,7 +57,14 @@ func (r *Repository) GetUserByApiKey(apiKey string) (models.User, error) {
 	return user, nil
 }
 
-func (r *Repository) UpdateUser(user models.User) error {
-	// err := r.db.Save(user).Error
-	return nil
+func (r *Repository) UpdateUserAPIKey(userId string, apiKey string) (bool, error) {
+	var result, err = r.db.Exec(`UPDATE users SET api_key = $1 WHERE id = $2`,
+		apiKey, userId)
+
+	var rows, rowsErr = result.RowsAffected()
+	if rowsErr != nil {
+		return false, rowsErr
+	}
+
+	return int(rows) > 0, err
 }
