@@ -21,8 +21,14 @@ CREATE TABLE IF NOT EXISTS invoices (
 CREATE INDEX idx_invoices_user_id ON invoices (user_id);
 CREATE INDEX idx_invoices_status ON invoices (status);
 
+CREATE TRIGGER set_timestamp
+BEFORE UPDATE ON invoices
+FOR EACH ROW
+EXECUTE PROCEDURE auto_set_timestamp();
+
 -- +migrate Down
-DROP TABLE IF EXISTS invoices;
-DROP TYPE IF EXISTS INVOICE_STATUS;
+DROP TRIGGER IF EXISTS set_timestamp ON invoices;
 DROP INDEX IF EXISTS idx_invoices_user_id;
 DROP INDEX IF EXISTS idx_invoices_status;
+DROP TABLE IF EXISTS invoices;
+DROP TYPE IF EXISTS INVOICE_STATUS;
