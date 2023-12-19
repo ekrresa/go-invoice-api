@@ -22,8 +22,7 @@ func (r *Repository) CreateUser(input models.CreateUserInput) (string, error) {
 func (r *Repository) GetUserByEmail(email string) (models.User, error) {
 	var user = models.User{}
 
-	var err = r.db.Get(&user, `SELECT id, name, email, password, api_key 
-	FROM users WHERE email = $1 LIMIT 1`, email)
+	var err = r.db.Get(&user, `SELECT * FROM users WHERE email = $1 LIMIT 1`, email)
 
 	if err != nil {
 		return user, err
@@ -35,8 +34,7 @@ func (r *Repository) GetUserByEmail(email string) (models.User, error) {
 func (r *Repository) GetUserByID(id string) (models.User, error) {
 	var user = models.User{}
 
-	var err = r.db.Get(&user, `SELECT id, name, email, api_key, password, created_at, updated_at 
-	FROM users WHERE id = $1 LIMIT 1`, id)
+	var err = r.db.Get(&user, `SELECT * FROM users WHERE id = $1 LIMIT 1`, id)
 
 	if err != nil {
 		return user, err
@@ -48,8 +46,7 @@ func (r *Repository) GetUserByID(id string) (models.User, error) {
 func (r *Repository) GetUserByApiKey(apiKey string) (models.User, error) {
 	var user = models.User{}
 
-	var err = r.db.Get(&user, `SELECT id, name, email, api_key, password, created_at, updated_at 
-	FROM users WHERE api_key = $1 LIMIT 1`, apiKey)
+	var err = r.db.Get(&user, `SELECT * FROM users WHERE api_key = $1 LIMIT 1`, apiKey)
 	if err != nil {
 		return user, err
 	}
