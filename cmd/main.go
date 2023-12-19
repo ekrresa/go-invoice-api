@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/ekrresa/invoice-api/pkg/config"
+	"github.com/ekrresa/invoice-api/pkg/helpers"
 	"github.com/ekrresa/invoice-api/pkg/routes"
-	"github.com/ekrresa/invoice-api/pkg/utils"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -46,7 +46,7 @@ func main() {
 			return r.Header.Get("X-API-Key"), nil
 		}),
 		httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
-			utils.ErrorResponse(w, "Too many requests", http.StatusTooManyRequests)
+			helpers.ErrorResponse(w, "Too many requests", http.StatusTooManyRequests)
 		})))
 
 	r.Use(middleware.RequestSize(1048576))

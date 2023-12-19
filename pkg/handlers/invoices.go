@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ekrresa/invoice-api/pkg/helpers"
 	"github.com/ekrresa/invoice-api/pkg/models"
 	"github.com/ekrresa/invoice-api/pkg/repository"
-	"github.com/ekrresa/invoice-api/pkg/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"github.com/oklog/ulid/v2"
@@ -27,14 +27,14 @@ func NewInvoiceHandler(repo repository.Repository) *invoiceHandler {
 func (c *invoiceHandler) CreateInvoice(w http.ResponseWriter, r *http.Request, user *models.User) {
 	var requestBody models.CreateInvoicePayload
 
-	decodeErr := utils.DecodeJSONBody(w, r.Body, &requestBody)
+	decodeErr := helpers.DecodeJSONBody(w, r.Body, &requestBody)
 	if decodeErr != nil {
-		var requestError *utils.RequestError
+		var requestError *helpers.RequestError
 
 		if errors.As(decodeErr, &requestError) {
-			utils.ErrorResponse(w, requestError.Message, requestError.StatusCode)
+			helpers.ErrorResponse(w, requestError.Message, requestError.StatusCode)
 		} else {
-			utils.ErrorResponse(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			helpers.ErrorResponse(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 		return
 	}
@@ -42,7 +42,7 @@ func (c *invoiceHandler) CreateInvoice(w http.ResponseWriter, r *http.Request, u
 	validate := validator.New()
 	validateErr := validate.Struct(&requestBody)
 	if validateErr != nil {
-		utils.ErrorResponse(w, validateErr.Error(), http.StatusBadRequest)
+		helpers.ErrorResponse(w, validateErr.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -82,22 +82,22 @@ func (c *invoiceHandler) CreateInvoice(w http.ResponseWriter, r *http.Request, u
 
 	createInvoiceErr := c.repo.CreateInvoice(&newInvoice, &newInvoiceItems)
 	if createInvoiceErr != nil {
-		utils.ErrorResponse(w, createInvoiceErr.Error(), http.StatusInternalServerError)
+		helpers.ErrorResponse(w, createInvoiceErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	utils.SuccessResponse(w, &newInvoice, "Invoice created", http.StatusOK)
+	helpers.SuccessResponse(w, &newInvoice, "Invoice created", http.StatusOK)
 }
 
 func (c *invoiceHandler) ListInvoicesOfUser(w http.ResponseWriter, r *http.Request, user *models.User) {
 	var invoices, err = c.repo.ListInvoicesOfUser(user.ID)
 
 	if err != nil {
-		utils.ErrorResponse(w, err.Error(), http.StatusInternalServerError)
+		helpers.ErrorResponse(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	utils.SuccessResponse(w, &invoices, "Invoices retrieved", http.StatusOK)
+	helpers.SuccessResponse(w, &invoices, "Invoices retrieved", http.StatusOK)
 }
 
 func (c *invoiceHandler) GetInvoice(w http.ResponseWriter, r *http.Request, user *models.User) {
@@ -105,14 +105,14 @@ func (c *invoiceHandler) GetInvoice(w http.ResponseWriter, r *http.Request, user
 	var invoice, err = c.repo.GetInvoice(invoiceID, user.ID)
 
 	if err != nil {
-		utils.ErrorResponse(w, err.Error(), http.StatusInternalServerError)
+		helpers.ErrorResponse(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	if invoice == nil {
-		utils.ErrorResponse(w, "Invoice not found", http.StatusNotFound)
+		helpers.ErrorResponse(w, "Invoice not found", http.StatusNotFound)
 		return
 	}
 
-	utils.SuccessResponse(w, invoice, "Invoice retrieved", http.StatusOK)
+	helpers.SuccessResponse(w, invoice, "Invoice retrieved", http.StatusOK)
 }

@@ -1,4 +1,4 @@
-package utils
+package helpers
 
 import "github.com/ekrresa/invoice-api/pkg/models"
 
@@ -8,8 +8,8 @@ func CacheUser(key string, user models.User) {
 	apiKeyCache[key] = user
 }
 
-func GetUserFromCache(key string) (*models.User, bool) {
+func GetUserFromCache(key string) (models.User, bool) {
 	var user, found = apiKeyCache[key]
 
-	return &user, found
+	return user, found
 }

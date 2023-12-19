@@ -3,9 +3,9 @@ package middleware
 import (
 	"net/http"
 
+	"github.com/ekrresa/invoice-api/pkg/helpers"
 	"github.com/ekrresa/invoice-api/pkg/models"
 	"github.com/ekrresa/invoice-api/pkg/repository"
-	"github.com/ekrresa/invoice-api/pkg/utils"
 )
 
 type Middleware struct {
@@ -23,28 +23,28 @@ func (m *Middleware) AuthenticateApiKey(fn func(http.ResponseWriter, *http.Reque
 		apiKey := r.Header.Get("X-API-Key")
 
 		if apiKey == "" {
-			utils.ErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
+			helpers.ErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		var currentUser *models.User
+		var currentUser models.User
 
-		var cachedUser, found = utils.GetUserFromCache(apiKey)
+		var cachedUser, found = helpers.GetUserFromCache(apiKey)
 
 		if !found {
-			apiKeyHash := utils.HashApiKey(apiKey)
+			apiKeyHash := helpers.HashApiKey(apiKey)
 			user, userErr := m.db.GetUserByApiKey(apiKeyHash)
 
 			if userErr != nil {
-				utils.ErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
+				helpers.ErrorResponse(w, "Unauthorized", http.StatusUnauthorized)
 				return
 			}
-			utils.CacheUser(apiKey, *user)
+			helpers.CacheUser(apiKey, user)
 			currentUser = user
 		} else {
 			currentUser = cachedUser
 		}
 
-		fn(w, r, currentUser)
+		fn(w, r, &currentUser)
 	}
 }

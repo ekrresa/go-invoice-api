@@ -16,8 +16,6 @@ func RegisterRoutes(r *chi.Mux, db *sqlx.DB) {
 
 	r.Post("/users/auth", userHandler.RegisterUser)
 	r.Post("/users/get_apikey", userHandler.RegenerateApiKey)
-	// r.Post("/users/forgot_password", userHandler.RegenerateApiKey)
-	// r.Post("/users/reset_password", userHandler.RegenerateApiKey)
 
 	r.Post("/invoices", middleware.AuthenticateApiKey(invoiceHandler.CreateInvoice))
 	r.Get("/invoices", middleware.AuthenticateApiKey(invoiceHandler.ListInvoicesOfUser))
