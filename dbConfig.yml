@@ -1,0 +1,4 @@
+development:
+  dialect: postgres
+  datasource: postgres://ekrresa:password@localhost:5432/invoicedb?sslmode=disable
+  dir: migrations

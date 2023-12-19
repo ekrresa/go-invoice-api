@@ -22,10 +22,8 @@ func init() {
 }
 
 func main() {
-	db, dbErr := config.ConnectDatabase()
-	if dbErr != nil {
-		log.Fatal(dbErr)
-	}
+	db := config.ConnectToDatabase()
+	config.ApplyMigrations(db)
 
 	r := chi.NewRouter()
 
@@ -57,7 +55,7 @@ func main() {
 
 	routes.RegisterRoutes(r, db)
 
-	err := http.ListenAndServe(":3000", r)
+	err := http.ListenAndServe(":8000", r)
 
 	if err != nil {
 		log.Fatal(err)

@@ -5,10 +5,10 @@ import (
 	"github.com/ekrresa/invoice-api/pkg/middleware"
 	"github.com/ekrresa/invoice-api/pkg/repository"
 	"github.com/go-chi/chi/v5"
-	"gorm.io/gorm"
+	"github.com/jmoiron/sqlx"
 )
 
-func RegisterRoutes(r *chi.Mux, db *gorm.DB) {
+func RegisterRoutes(r *chi.Mux, db *sqlx.DB) {
 	repo := repository.NewRepository(db)
 	middleware := middleware.NewMiddleware(repo)
 	userHandler := handlers.NewUserHandler(*repo)
