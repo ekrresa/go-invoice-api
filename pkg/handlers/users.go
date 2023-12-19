@@ -23,7 +23,7 @@ func NewUserHandler(repo repository.Repository) *UserHandler {
 }
 
 func (c *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
-	var requestBody models.RegisterUserPayload
+	var requestBody models.CreateUserInput
 
 	decodeErr := utils.DecodeJSONBody(w, r.Body, &requestBody)
 
@@ -45,38 +45,28 @@ func (c *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, userByEmailError := c.repo.GetUserByEmail(requestBody.Email)
-	if userByEmailError == nil {
+	if _, err := c.repo.GetUserByEmail(requestBody.Email); err == nil {
 		utils.ErrorResponse(w, "User already exists", http.StatusBadRequest)
 		return
 	}
 
-	// Generate API key
-	apiKey := ulid.Make().String()
-	apiKeyHash := utils.HashApiKey(apiKey)
-
-	newUser := &models.User{}
-	newUser.ID = strings.ToLower(ulid.Make().String())
-	newUser.Name = requestBody.Name
-	newUser.Email = requestBody.Email
-	newUser.ApiKey = apiKeyHash
-
-	userPassword, passwordError := utils.HashPassword(requestBody.Password)
+	hashedPassword, passwordError := utils.HashPassword(requestBody.Password)
 	if passwordError != nil {
 		utils.ErrorResponse(w, "Password failed validation", http.StatusInternalServerError)
 		return
 	}
 
-	newUser.Password = userPassword
+	requestBody.Password = hashedPassword
 
-	createErr := c.repo.CreateUser(newUser)
+	var apiKey, createErr = c.repo.CreateUser(requestBody)
 	if createErr != nil {
 		utils.ErrorResponse(w, createErr.Error(), http.StatusBadRequest)
 		return
 	}
 
-	responsePayload := make(map[string]string)
-	responsePayload["api_key"] = apiKey
+	var responsePayload = map[string]string{
+		"api_key": apiKey,
+	}
 
 	utils.SuccessResponse(w, &responsePayload, "User created", http.StatusCreated)
 }

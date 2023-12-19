@@ -5,19 +5,27 @@ import (
 )
 
 type User struct {
-	ID        string    `gorm:"primaryKey;size:50" json:"id"`
-	Name      string    `gorm:"not null;size:255" json:"name"`
-	Email     string    `gorm:"not null;size:255;uniqueIndex" json:"email"`
-	Password  string    `gorm:"not null;size:255" json:"password"`
-	ApiKey    string    `gorm:"index;not null;size:255" json:"api_key"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Invoices  []Invoice `json:"invoices"`
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	Password  string    `json:"password"`
+	ApiKey    string    `json:"api_key" db:"api_key"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
 
+type InvoiceStatus string
+
+const (
+	Open  InvoiceStatus = "open"
+	Draft InvoiceStatus = "draft"
+	Paid  InvoiceStatus = "paid"
+	Void  InvoiceStatus = "void"
+)
+
 type Invoice struct {
-	ID                    string        `gorm:"primaryKey;size:50" json:"id"`
-	UserID                string        `gorm:"index;user_id;size:50" json:"user_id"`
+	ID                    string        `json:"id"`
+	UserID                string        `gorm"index" json:"user_id" db:"user_id"`
 	Description           string        `json:"description"`
 	Status                InvoiceStatus `gorm:"default:draft" json:"status"`
 	CustomerName          string        `gorm:"customer_name;not null;size:255" json:"customer_name"`
@@ -29,15 +37,6 @@ type Invoice struct {
 	CreatedAt             time.Time     `gorm:"created_at" json:"created_at"`
 	UpdatedAt             time.Time     `gorm:"updated_at" json:"updated_at"`
 }
-
-type InvoiceStatus string
-
-const (
-	Open  InvoiceStatus = "open"
-	Draft InvoiceStatus = "draft"
-	Paid  InvoiceStatus = "paid"
-	Void  InvoiceStatus = "void"
-)
 
 type InvoiceItem struct {
 	ID        uint      `gorm:"autoIncrement;primary_key" json:"id"`

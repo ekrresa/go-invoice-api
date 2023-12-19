@@ -80,11 +80,15 @@ func SuccessResponse(w http.ResponseWriter, data interface{}, message string, st
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 
-	response := make(map[string]any)
-	response["message"] = message
-	response["status"] = "success"
-	response["data"] = data
-	jsonResponse, _ := json.Marshal(response)
+	var responseBody = map[string]any{
+		"message": message,
+		"status":  "success",
+	}
+
+	if data != nil {
+		responseBody["data"] = data
+	}
+	jsonResponse, _ := json.Marshal(responseBody)
 
 	w.Write(jsonResponse)
 }
