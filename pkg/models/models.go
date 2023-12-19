@@ -25,17 +25,17 @@ const (
 
 type Invoice struct {
 	ID                    string        `json:"id"`
-	UserID                string        `gorm"index" json:"user_id" db:"user_id"`
+	UserID                string        `json:"user_id" db:"user_id"`
 	Description           string        `json:"description"`
-	Status                InvoiceStatus `gorm:"default:draft" json:"status"`
-	CustomerName          string        `gorm:"customer_name;not null;size:255" json:"customer_name"`
-	CustomerEmail         string        `gorm:"customer_email;size:255" json:"customer_email"`
-	AllowMultiplePayments bool          `gorm:"default:false" json:"allow_multiple_payments"`
-	Currency              string        `gorm:"default:NGN;size:5" json:"currency"`
-	Total                 uint          `gorm:"not null" json:"total"`
-	DueDate               time.Time     `gorm:"not null" json:"due_date"`
-	CreatedAt             time.Time     `gorm:"created_at" json:"created_at"`
-	UpdatedAt             time.Time     `gorm:"updated_at" json:"updated_at"`
+	Status                InvoiceStatus `json:"status"`
+	CustomerName          string        `json:"customer_name" db:"customer_name"`
+	CustomerEmail         string        `json:"customer_email" db:"customer_email"`
+	AllowMultiplePayments bool          `json:"allow_multiple_payments" db:"allow_multiple_payments"`
+	Currency              string        `json:"currency"`
+	Total                 uint          `json:"total"`
+	DueDate               time.Time     `json:"due_date" db:"due_date"`
+	CreatedAt             time.Time     `json:"created_at" db:"created_at"`
+	UpdatedAt             time.Time     `json:"updated_at" db:"updated_at"`
 }
 
 type InvoiceItem struct {
