@@ -1,15 +1,25 @@
 package helpers
 
-import "github.com/ekrresa/invoice-api/pkg/models"
+import (
+	"time"
 
-var apiKeyCache = make(map[string]models.User)
+	"github.com/ekrresa/invoice-api/pkg/models"
+	"github.com/patrickmn/go-cache"
+)
+
+var c = cache.New(1*time.Hour, 0)
 
 func CacheUser(key string, user models.User) {
-	apiKeyCache[key] = user
+	c.Set(key, user, cache.NoExpiration)
 }
 
 func GetUserFromCache(key string) (models.User, bool) {
-	var user, found = apiKeyCache[key]
+	var user models.User
+	var value, found = c.Get(key)
+
+	if found {
+		user = value.(models.User)
+	}
 
 	return user, found
 }

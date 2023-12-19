@@ -28,6 +28,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.5 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/lib/pq v1.10.9 // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/rubenv/sql-migrate v1.5.2 // indirect
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
