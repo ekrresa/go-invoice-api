@@ -1,17 +1,15 @@
 package handlers
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
-	"strings"
-	"time"
 
 	"github.com/ekrresa/invoice-api/pkg/helpers"
 	"github.com/ekrresa/invoice-api/pkg/models"
 	"github.com/ekrresa/invoice-api/pkg/repository"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
-	"github.com/oklog/ulid/v2"
 )
 
 type invoiceHandler struct {
@@ -25,7 +23,7 @@ func NewInvoiceHandler(repo repository.Repository) *invoiceHandler {
 }
 
 func (c *invoiceHandler) CreateInvoice(w http.ResponseWriter, r *http.Request, user *models.User) {
-	var requestBody models.CreateInvoicePayload
+	var requestBody models.CreateInvoiceInput
 
 	decodeErr := helpers.DecodeJSONBody(w, r.Body, &requestBody)
 	if decodeErr != nil {
@@ -46,47 +44,16 @@ func (c *invoiceHandler) CreateInvoice(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 
-	// dueDate, dueDateErr := time.Parse("2006-01-02", requestBody.DueDate)
-	// if dueDateErr != nil {
-	// 	utils.ErrorResponse(w, "Invalid date format for due date", http.StatusBadRequest)
-	// 	return
+	//TODO: Validate due date that it is a valid timestamp and it is in the future.
+	//TODO: Validate total amount if invoice has items.
 
-	// }
-
-	newInvoice := models.Invoice{
-		ID:                    strings.ToLower(string(ulid.Make().String())),
-		UserID:                user.ID,
-		Description:           requestBody.Description,
-		Status:                models.InvoiceStatus(requestBody.Status),
-		CustomerName:          requestBody.CustomerName,
-		CustomerEmail:         requestBody.CustomerEmail,
-		AllowMultiplePayments: requestBody.AllowMultiplePayments,
-		Currency:              requestBody.Currency,
-		Total:                 requestBody.Total,
-		DueDate:               time.Now().Add(time.Duration(time.Now().Day() * 12)),
-	}
-
-	var newInvoiceItems = make([]models.InvoiceItem, len(requestBody.Items))
-	if requestBody.Items != nil {
-		for index, item := range requestBody.Items {
-			newItems := models.InvoiceItem{
-				Name:      item.Name,
-				Quantity:  item.Quantity,
-				Price:     item.Price,
-				InvoiceID: newInvoice.ID,
-			}
-
-			newInvoiceItems[index] = newItems
-		}
-	}
-
-	createInvoiceErr := c.repo.CreateInvoice(&newInvoice, &newInvoiceItems)
+	createInvoiceErr := c.repo.CreateInvoice(user.ID, &requestBody)
 	if createInvoiceErr != nil {
 		helpers.ErrorResponse(w, createInvoiceErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	helpers.SuccessResponse(w, &newInvoice, "Invoice created", http.StatusOK)
+	helpers.SuccessResponse(w, nil, "Invoice created", http.StatusOK)
 }
 
 func (c *invoiceHandler) ListInvoicesOfUser(w http.ResponseWriter, r *http.Request, user *models.User) {
@@ -105,14 +72,13 @@ func (c *invoiceHandler) GetInvoice(w http.ResponseWriter, r *http.Request, user
 	var invoice, err = c.repo.GetInvoice(invoiceID, user.ID)
 
 	if err != nil {
-		helpers.ErrorResponse(w, err.Error(), http.StatusInternalServerError)
+		if err == sql.ErrNoRows {
+			helpers.ErrorResponse(w, "Invoice not found", http.StatusNotFound)
+		} else {
+			helpers.ErrorResponse(w, "Error getting invoice", http.StatusInternalServerError)
+		}
 		return
 	}
 
-	if invoice == nil {
-		helpers.ErrorResponse(w, "Invoice not found", http.StatusNotFound)
-		return
-	}
-
-	helpers.SuccessResponse(w, invoice, "Invoice retrieved", http.StatusOK)
+	helpers.SuccessResponse(w, &invoice, "Invoice retrieved", http.StatusOK)
 }

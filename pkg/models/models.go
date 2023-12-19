@@ -39,12 +39,11 @@ type Invoice struct {
 }
 
 type InvoiceItem struct {
-	ID        uint      `gorm:"autoIncrement;primary_key" json:"id"`
-	Name      string    `gorm:"not null;size:255" json:"name"`
-	Quantity  uint      `gorm:"default:1" json:"quantity"`
-	Price     uint      `gorm:"not null" json:"price"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	InvoiceID string    `gorm:"not null;size:50" json:"invoice_id"`
-	Invoice   Invoice   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"invoice"`
+	ID        uint      `json:"id"`
+	Name      string    `json:"name"`
+	Quantity  uint      `json:"quantity"`
+	UnitPrice uint      `json:"unit_price" db:"unit_price"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+	InvoiceID string    `json:"invoice_id" db:"invoice_id"`
 }
