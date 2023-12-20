@@ -201,6 +201,46 @@ func (c *invoiceHandler) DeleteInvoice(w http.ResponseWriter, r *http.Request, u
 	helpers.SuccessResponse(w, nil, "Invoice deleted", http.StatusOK)
 }
 
+func (h *invoiceHandler) VoidInvoice(w http.ResponseWriter, r *http.Request, user *models.User) {
+	var invoiceID = chi.URLParam(r, "invoiceID")
+	var prevInvoice, prevInvoiceErr = h.repo.GetInvoiceOfAUser(invoiceID, user.ID)
+
+	if prevInvoiceErr != nil {
+		if prevInvoiceErr == sql.ErrNoRows {
+			helpers.ErrorResponse(w, "Invoice does not exist", http.StatusNotFound)
+		} else {
+			helpers.ErrorResponse(w, "Error voiding this invoice", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if prevInvoice.Status != models.Open {
+		helpers.ErrorResponse(w, "Only open invoices can be voided", http.StatusBadRequest)
+		return
+	}
+
+	prevInvoice.Status = models.Void
+
+	var updateInvoiceInput = models.UpdateInvoiceInput{
+		Description:           &prevInvoice.Description,
+		Status:                &prevInvoice.Status,
+		CustomerName:          &prevInvoice.CustomerName,
+		CustomerEmail:         &prevInvoice.CustomerEmail,
+		AllowMultiplePayments: &prevInvoice.AllowMultiplePayments,
+		Currency:              &prevInvoice.Currency,
+		Total:                 &prevInvoice.Total,
+		DueDate:               &prevInvoice.DueDate,
+	}
+
+	var updatedInvoice, err = h.repo.UpdateInvoice(invoiceID, updateInvoiceInput)
+	if err != nil {
+		helpers.ErrorResponse(w, "Error voiding invoice", http.StatusInternalServerError)
+		return
+	}
+
+	helpers.SuccessResponse(w, &updatedInvoice, "Invoice is void", http.StatusOK)
+}
+
 func mergeInvoices(dest *models.UpdateInvoiceInput, src *models.Invoice) {
 	if dest.Description == nil {
 		dest.Description = &src.Description
