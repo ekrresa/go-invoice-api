@@ -60,11 +60,26 @@ func (r *Repository) ListInvoicesOfUser(userID string) ([]models.Invoice, error)
 }
 
 // TODO: Include the invoice items
-func (r *Repository) GetInvoice(invoiceID string, userID string) (models.Invoice, error) {
+func (r *Repository) GetInvoiceOfAUser(invoiceID string, userID string) (models.Invoice, error) {
 	var invoice models.Invoice
 
 	var err = r.db.Get(&invoice, `SELECT * FROM invoices WHERE id = $1 AND user_id = $2`,
 		invoiceID, userID)
 
 	return invoice, err
+}
+
+func (r *Repository) UpdateInvoice(invoiceID string, invoiceInput models.UpdateInvoiceInput) (*models.Invoice, error) {
+	var invoice models.Invoice
+
+	var updateErr = r.db.Get(&invoice, `UPDATE invoices SET description = $1, customer_name = $2, customer_email = $3, allow_multiple_payments = $4, currency = $5, total = $6, due_date = $7, status = $8 WHERE id = $9 RETURNING *`,
+		invoiceInput.Description, invoiceInput.CustomerName, invoiceInput.CustomerEmail, invoiceInput.AllowMultiplePayments, invoiceInput.Currency, invoiceInput.Total, invoiceInput.DueDate, invoiceInput.Status, invoiceID)
+
+	return &invoice, updateErr
+}
+
+func (r *Repository) DeleteInvoice(invoiceID string) error {
+	var _, deleteErr = r.db.Exec(`DELETE FROM invoices WHERE id = $1`, invoiceID)
+
+	return deleteErr
 }

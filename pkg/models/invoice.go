@@ -1,6 +1,9 @@
 package models
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"time"
+)
 
 type CreateInvoiceItemInput struct {
 	Name      string `json:"name" validate:"required"`
@@ -46,4 +49,16 @@ type ListInvoicesResponse struct {
 	AllowMultiplePayments bool          `json:"allow_multiple_payments"`
 	Items                 []InvoiceItem `json:"items"`
 	Total                 uint          `json:"total"`
+}
+
+type UpdateInvoiceInput struct {
+	Description           *string        `json:"description,omitempty"`
+	Status                *InvoiceStatus `json:"status,omitempty"`
+	AllowMultiplePayments *bool          `json:"allow_multiple_payments,omitempty"`
+	// TODO: Add validation for customer email
+	CustomerName  *string    `json:"customer_name,omitempty"`
+	CustomerEmail *string    `json:"customer_email,omitempty"`
+	Currency      *string    `json:"currency,omitempty"`
+	Total         *uint      `json:"total,omitempty"`
+	DueDate       *time.Time `json:"due_date,omitempty"`
 }
