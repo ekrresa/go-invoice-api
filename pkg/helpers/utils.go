@@ -71,7 +71,12 @@ func ErrorResponse(w http.ResponseWriter, message string, statusCode int) {
 	response := make(map[string]string)
 	response["message"] = message
 	response["status"] = "failed"
-	jsonResponse, _ := json.Marshal(response)
+
+	var jsonResponse, marshalErr = json.Marshal(response)
+	if marshalErr != nil {
+		ErrorResponse(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
 
 	w.Write(jsonResponse)
 }
@@ -88,7 +93,12 @@ func SuccessResponse(w http.ResponseWriter, data interface{}, message string, st
 	if data != nil {
 		responseBody["data"] = data
 	}
-	jsonResponse, _ := json.Marshal(responseBody)
+
+	var jsonResponse, marshalErr = json.Marshal(responseBody)
+	if marshalErr != nil {
+		ErrorResponse(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
 
 	w.Write(jsonResponse)
 }
