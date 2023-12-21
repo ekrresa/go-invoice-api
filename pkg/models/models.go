@@ -26,14 +26,14 @@ const (
 type Invoice struct {
 	ID                    string        `json:"id"`
 	UserID                string        `json:"user_id" db:"user_id"`
-	Description           string        `json:"description"`
+	Description           *string       `json:"description"`
 	Status                InvoiceStatus `json:"status"`
 	CustomerName          string        `json:"customer_name" db:"customer_name"`
-	CustomerEmail         string        `json:"customer_email" db:"customer_email"`
+	CustomerEmail         *string       `json:"customer_email" db:"customer_email"`
 	AllowMultiplePayments bool          `json:"allow_multiple_payments" db:"allow_multiple_payments"`
 	Currency              string        `json:"currency"`
 	Total                 uint          `json:"total"`
-	DueDate               time.Time     `json:"due_date" db:"due_date"`
+	DueDate               *time.Time    `json:"due_date" db:"due_date"`
 	CreatedAt             time.Time     `json:"created_at" db:"created_at"`
 	UpdatedAt             time.Time     `json:"updated_at" db:"updated_at"`
 }

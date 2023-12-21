@@ -13,14 +13,14 @@ type CreateInvoiceItemInput struct {
 }
 
 type CreateInvoiceInput struct {
-	Description           string                   `json:"description,omitempty"`
+	Description           *string                  `json:"description,omitempty"`
 	Status                InvoiceStatus            `json:"status,omitempty"`
 	AllowMultiplePayments bool                     `json:"allow_multiple_payments,omitempty"`
 	CustomerName          string                   `json:"customer_name" validate:"required"`
-	CustomerEmail         string                   `json:"customer_email,omitempty"`
+	CustomerEmail         *string                  `json:"customer_email,omitempty"`
 	Currency              string                   `json:"currency" validate:"required"`
 	Total                 uint                     `json:"total" validate:"required"`
-	DueDate               string                   `json:"due_date,omitempty"`
+	DueDate               *time.Time               `json:"due_date,omitempty"`
 	Items                 []CreateInvoiceItemInput `json:"items,omitempty"`
 }
 
@@ -42,13 +42,28 @@ func (i *CreateInvoiceInput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-type ListInvoicesResponse struct {
-	ID                    string        `json:"id"`
-	Description           uint          `json:"description"`
-	Status                InvoiceStatus `json:"status"`
-	AllowMultiplePayments bool          `json:"allow_multiple_payments"`
-	Items                 []InvoiceItem `json:"items"`
-	Total                 uint          `json:"total"`
+type GetInvoiceResponse struct {
+	ID                    string                   `json:"id"`
+	Description           *string                  `json:"description"`
+	Status                InvoiceStatus            `json:"status"`
+	AllowMultiplePayments bool                     `json:"allow_multiple_payments" db:"allow_multiple_payments"`
+	CustomerName          string                   `json:"customer_name"`
+	CustomerEmail         *string                  `json:"customer_email"`
+	Currency              string                   `json:"currency"`
+	DueDate               *time.Time               `json:"due_date" db:"due_date"`
+	CreatedAt             time.Time                `json:"created_at" db:"created_at"`
+	UpdatedAt             time.Time                `json:"updated_at" db:"updated_at"`
+	Total                 uint                     `json:"total"`
+	Items                 []GetInvoiceItemResponse `json:"items"`
+}
+
+type GetInvoiceItemResponse struct {
+	ID        uint      `json:"id"`
+	Name      string    `json:"name"`
+	Quantity  uint      `json:"quantity"`
+	UnitPrice uint      `json:"unit_price" db:"unit_price"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
 
 type UpdateInvoiceInput struct {

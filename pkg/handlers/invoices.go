@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -47,6 +48,8 @@ func (c *invoiceHandler) CreateInvoice(w http.ResponseWriter, r *http.Request, u
 
 	//TODO: Validate due date that it is a valid timestamp and it is in the future.
 	//TODO: Validate total amount if invoice has items.
+
+	fmt.Println(requestBody)
 
 	createInvoiceErr := c.repo.CreateInvoice(user.ID, &requestBody)
 	if createInvoiceErr != nil {
@@ -104,14 +107,14 @@ func (c *invoiceHandler) FinalizeInvoice(w http.ResponseWriter, r *http.Request,
 
 	prevInvoice.Status = models.Open
 	var invoiceInput = models.UpdateInvoiceInput{
-		Description:           &prevInvoice.Description,
+		Description:           prevInvoice.Description,
 		Status:                &prevInvoice.Status,
 		CustomerName:          &prevInvoice.CustomerName,
-		CustomerEmail:         &prevInvoice.CustomerEmail,
+		CustomerEmail:         prevInvoice.CustomerEmail,
 		AllowMultiplePayments: &prevInvoice.AllowMultiplePayments,
 		Currency:              &prevInvoice.Currency,
 		Total:                 &prevInvoice.Total,
-		DueDate:               &prevInvoice.DueDate,
+		DueDate:               prevInvoice.DueDate,
 	}
 
 	var updatedInvoice, err = c.repo.UpdateInvoice(invoiceID, invoiceInput)
@@ -222,14 +225,14 @@ func (h *invoiceHandler) VoidInvoice(w http.ResponseWriter, r *http.Request, use
 	prevInvoice.Status = models.Void
 
 	var updateInvoiceInput = models.UpdateInvoiceInput{
-		Description:           &prevInvoice.Description,
+		Description:           prevInvoice.Description,
 		Status:                &prevInvoice.Status,
 		CustomerName:          &prevInvoice.CustomerName,
-		CustomerEmail:         &prevInvoice.CustomerEmail,
+		CustomerEmail:         prevInvoice.CustomerEmail,
 		AllowMultiplePayments: &prevInvoice.AllowMultiplePayments,
 		Currency:              &prevInvoice.Currency,
 		Total:                 &prevInvoice.Total,
-		DueDate:               &prevInvoice.DueDate,
+		DueDate:               prevInvoice.DueDate,
 	}
 
 	var updatedInvoice, err = h.repo.UpdateInvoice(invoiceID, updateInvoiceInput)
@@ -243,7 +246,7 @@ func (h *invoiceHandler) VoidInvoice(w http.ResponseWriter, r *http.Request, use
 
 func mergeInvoices(dest *models.UpdateInvoiceInput, src *models.Invoice) {
 	if dest.Description == nil {
-		dest.Description = &src.Description
+		dest.Description = src.Description
 	}
 	if dest.Status == nil {
 		dest.Status = &src.Status
@@ -252,7 +255,7 @@ func mergeInvoices(dest *models.UpdateInvoiceInput, src *models.Invoice) {
 		dest.CustomerName = &src.CustomerName
 	}
 	if dest.CustomerEmail == nil {
-		dest.CustomerEmail = &src.CustomerEmail
+		dest.CustomerEmail = src.CustomerEmail
 	}
 	if dest.AllowMultiplePayments == nil {
 		dest.AllowMultiplePayments = &src.AllowMultiplePayments
@@ -264,6 +267,6 @@ func mergeInvoices(dest *models.UpdateInvoiceInput, src *models.Invoice) {
 		dest.Total = &src.Total
 	}
 	if dest.DueDate == nil {
-		dest.DueDate = &src.DueDate
+		dest.DueDate = src.DueDate
 	}
 }
