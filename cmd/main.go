@@ -15,31 +15,29 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func init() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("No .env file found")
-	}
-}
-
 func main() {
+	godotenv.Load()
+
+	var PORT = helpers.GetEnv("PORT")
+
 	db := config.ConnectToDatabase()
 	config.ApplyMigrations(db)
 
-	r := chi.NewRouter()
+	var router = chi.NewRouter()
 
-	r.Use(middleware.AllowContentType("application/json"))
-	r.Use(middleware.RequestID)
-	r.Use(middleware.Logger)
+	router.Use(middleware.AllowContentType("application/json"))
+	router.Use(middleware.RequestID)
+	router.Use(middleware.Logger)
 
 	// Rate limit by IP address and endpoint
-	r.Use(httprate.Limit(
+	router.Use(httprate.Limit(
 		10,
 		5*time.Second,
 		httprate.WithKeyFuncs(httprate.KeyByIP, httprate.KeyByEndpoint),
 	))
 
 	// Rate limit by API key
-	r.Use(httprate.Limit(
+	router.Use(httprate.Limit(
 		100,
 		1*time.Minute,
 		httprate.WithKeyFuncs(func(r *http.Request) (string, error) {
@@ -49,15 +47,17 @@ func main() {
 			helpers.ErrorResponse(w, "Too many requests", http.StatusTooManyRequests)
 		})))
 
-	r.Use(middleware.RequestSize(1048576))
-	r.Use(middleware.StripSlashes)
-	r.Use(middleware.Recoverer)
+	router.Use(middleware.RequestSize(1048576))
+	router.Use(middleware.StripSlashes)
+	router.Use(middleware.Recoverer)
 
-	routes.RegisterRoutes(r, db)
+	routes.RegisterRoutes(router, db)
 
-	err := http.ListenAndServe(":8000", r)
-
-	if err != nil {
-		log.Fatal(err)
+	var server = &http.Server{
+		Addr:    ":" + PORT,
+		Handler: router,
 	}
+
+	log.Printf("Server starting on port: %s\n", PORT)
+	log.Fatal(server.ListenAndServe())
 }

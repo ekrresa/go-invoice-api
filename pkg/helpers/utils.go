@@ -9,9 +9,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 type RequestError struct {
@@ -64,45 +63,6 @@ func DecodeJSONBody(w http.ResponseWriter, body io.ReadCloser, dst interface{}) 
 	return nil
 }
 
-func ErrorResponse(w http.ResponseWriter, message string, statusCode int) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-
-	response := make(map[string]string)
-	response["message"] = message
-	response["status"] = "failed"
-
-	var jsonResponse, marshalErr = json.Marshal(response)
-	if marshalErr != nil {
-		ErrorResponse(w, "Something went wrong", http.StatusInternalServerError)
-		return
-	}
-
-	w.Write(jsonResponse)
-}
-
-func SuccessResponse(w http.ResponseWriter, data interface{}, message string, statusCode int) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-
-	var responseBody = map[string]any{
-		"message": message,
-		"status":  "success",
-	}
-
-	if data != nil {
-		responseBody["data"] = data
-	}
-
-	var jsonResponse, marshalErr = json.Marshal(responseBody)
-	if marshalErr != nil {
-		ErrorResponse(w, "Something went wrong", http.StatusInternalServerError)
-		return
-	}
-
-	w.Write(jsonResponse)
-}
-
 func HashApiKey(apiKey string) string {
 	h := sha256.New()
 	h.Write([]byte(apiKey))
@@ -111,12 +71,11 @@ func HashApiKey(apiKey string) string {
 	return base64.URLEncoding.EncodeToString(bs)
 }
 
-func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 16)
-	return string(bytes), err
-}
+func GetEnv(key string) string {
+	var value = os.Getenv(key)
+	if value == "" {
+		log.Fatal("Environment variable not set: " + key)
+	}
 
-func CheckPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
+	return value
 }

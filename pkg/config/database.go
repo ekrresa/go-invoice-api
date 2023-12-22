@@ -3,20 +3,17 @@ package config
 import (
 	"fmt"
 	"log"
-	"os"
 
+	"github.com/ekrresa/invoice-api/pkg/helpers"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	migrate "github.com/rubenv/sql-migrate"
 )
 
 func ConnectToDatabase() *sqlx.DB {
-	connString, exists := os.LookupEnv("DATABASE_URL")
-	if !exists {
-		log.Fatal("DATABASE_URL not set")
-	}
+	var DB_URL = helpers.GetEnv("DATABASE_URL")
 
-	var db, err = sqlx.Connect("postgres", connString)
+	var db, err = sqlx.Connect("postgres", DB_URL)
 	if err != nil {
 		log.Fatal("Error connecting to DB: ", err)
 	}
