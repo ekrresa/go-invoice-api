@@ -3,9 +3,9 @@ package handlers
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/ekrresa/invoice-api/pkg/helpers"
 	"github.com/ekrresa/invoice-api/pkg/models"
@@ -46,10 +46,22 @@ func (c *invoiceHandler) CreateInvoice(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 
-	//TODO: Validate due date that it is a valid timestamp and it is in the future.
-	//TODO: Validate total amount if invoice has items.
+	if requestBody.DueDate != nil && requestBody.DueDate.Before(time.Now()) {
+		helpers.ErrorResponse(w, "Due date cannot be in the past", http.StatusBadRequest)
+		return
+	}
 
-	fmt.Println(requestBody)
+	if len(requestBody.Items) > 0 {
+		var totalAmount uint
+		for _, item := range requestBody.Items {
+			totalAmount += item.Quantity * item.UnitPrice
+		}
+
+		if totalAmount != requestBody.Total {
+			helpers.ErrorResponse(w, "Total amount does not match sum of items", http.StatusBadRequest)
+			return
+		}
+	}
 
 	createInvoiceErr := c.repo.CreateInvoice(user.ID, &requestBody)
 	if createInvoiceErr != nil {
