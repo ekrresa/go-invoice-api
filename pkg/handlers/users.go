@@ -113,6 +113,8 @@ func (c *UserHandler) RegenerateApiKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	helpers.RemoveUserFromCache(user.ApiKey)
+
 	var responsePayload = map[string]string{
 		"api_key": newApiKey,
 	}

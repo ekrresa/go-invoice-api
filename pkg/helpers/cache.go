@@ -23,3 +23,7 @@ func GetUserFromCache(key string) (models.User, bool) {
 
 	return user, found
 }
+
+func RemoveUserFromCache(key string) {
+	c.Delete(key)
+}
