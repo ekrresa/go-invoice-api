@@ -3,7 +3,6 @@ package handlers
 import (
 	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/ekrresa/invoice-api/pkg/helpers"
 	"github.com/ekrresa/invoice-api/pkg/models"
@@ -105,7 +104,7 @@ func (c *UserHandler) RegenerateApiKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var newApiKey = strings.ToLower(ulid.Make().String())
+	var newApiKey = ulid.Make().String()
 	var hashedApiKey = helpers.HashApiKey(newApiKey)
 
 	var isUserUpdated, updateErr = c.repo.UpdateUserAPIKey(user.ID, hashedApiKey)

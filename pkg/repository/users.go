@@ -10,7 +10,7 @@ import (
 
 func (r *Repository) CreateUser(input models.CreateUserInput) (string, error) {
 	var id = strings.ToLower(ulid.Make().String())
-	var apiKey = strings.ToLower(ulid.Make().String())
+	var apiKey = ulid.Make().String()
 	var apiKeyHash = helpers.HashApiKey(apiKey)
 
 	var _, err = r.db.Exec(`INSERT INTO users (id, name, email, password, api_key) VALUES ($1, $2, $3, $4, $5)`,
