@@ -47,7 +47,6 @@ func main() {
 			helpers.ErrorResponse(w, "Too many requests", http.StatusTooManyRequests)
 		})))
 
-	router.Use(middleware.RequestSize(1048576))
 	router.Use(middleware.StripSlashes)
 	router.Use(middleware.Recoverer)
 
