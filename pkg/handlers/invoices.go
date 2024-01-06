@@ -256,29 +256,67 @@ func (h *invoiceHandler) VoidInvoice(w http.ResponseWriter, r *http.Request, use
 	helpers.SuccessResponse(w, &updatedInvoice, "Invoice is void", http.StatusOK)
 }
 
-func mergeInvoices(dest *models.UpdateInvoiceInput, src *models.Invoice) {
-	if dest.Description == nil {
-		dest.Description = src.Description
+func (h *invoiceHandler) PayAnInvoice(w http.ResponseWriter, r *http.Request, user *models.User) {
+	var requestBody models.PayInvoiceInput
+
+	var decodeErr = helpers.DecodeJSONBody(w, r.Body, &requestBody)
+	if decodeErr != nil {
+		var requestError *helpers.RequestError
+
+		if errors.As(decodeErr, &requestError) {
+			helpers.ErrorResponse(w, requestError.Message, requestError.StatusCode)
+		} else {
+			helpers.ErrorResponse(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		}
+		return
 	}
-	if dest.Status == nil {
-		dest.Status = &src.Status
+
+	var validate = validator.New()
+	var validateErr = validate.Struct(&requestBody)
+	if validateErr != nil {
+		helpers.ErrorResponse(w, validateErr.Error(), http.StatusBadRequest)
+		return
 	}
-	if dest.CustomerName == nil {
-		dest.CustomerName = &src.CustomerName
+
+	var invoiceID = chi.URLParam(r, "invoiceID")
+
+	var invoice, getInvoiceErr = h.repo.GetInvoiceOfAUser(invoiceID, user.ID)
+	if getInvoiceErr != nil {
+		if getInvoiceErr == sql.ErrNoRows {
+			helpers.ErrorResponse(w, "Invoice does not exist", http.StatusNotFound)
+		} else {
+			helpers.ErrorResponse(w, "An error occurred. Please try again", http.StatusInternalServerError)
+		}
+		return
 	}
-	if dest.CustomerEmail == nil {
-		dest.CustomerEmail = src.CustomerEmail
+
+	if invoice.Status != models.Open {
+		helpers.ErrorResponse(w, "This invoice cannot receive payments", http.StatusBadRequest)
+		return
 	}
-	if dest.AllowMultiplePayments == nil {
-		dest.AllowMultiplePayments = &src.AllowMultiplePayments
+
+	if invoice.Currency != requestBody.Currency {
+		helpers.ErrorResponse(w, "Currency does not match with the invoice currency", http.StatusBadRequest)
+		return
 	}
-	if dest.Currency == nil {
-		dest.Currency = &src.Currency
+
+	if !invoice.AllowMultiplePayments && requestBody.Amount != invoice.Total {
+		helpers.ErrorResponse(w, "Amount does not match with the invoice total", http.StatusBadRequest)
+		return
 	}
-	if dest.Total == nil {
-		dest.Total = &src.Total
+
+	var invoiceAmountReceived = invoice.AmountPaid + requestBody.Amount
+
+	if invoice.AllowMultiplePayments && invoiceAmountReceived > invoice.Total {
+		helpers.ErrorResponse(w, "Amount cannot be greater than the invoice total", http.StatusBadRequest)
+		return
 	}
-	if dest.DueDate == nil {
-		dest.DueDate = src.DueDate
+
+	var payment, err = h.repo.PayAnInvoice(invoice, requestBody, invoiceAmountReceived == invoice.Total)
+	if err != nil {
+		helpers.ErrorResponse(w, "Error paying invoice", http.StatusInternalServerError)
+		return
 	}
+
+	helpers.SuccessResponse(w, &payment, "Payment was successful", http.StatusOK)
 }

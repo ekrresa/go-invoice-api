@@ -54,6 +54,7 @@ type GetInvoiceResponse struct {
 	CreatedAt             time.Time                `json:"created_at" db:"created_at"`
 	UpdatedAt             time.Time                `json:"updated_at" db:"updated_at"`
 	Total                 uint                     `json:"total"`
+	AmountPaid            uint                     `json:"amount_paid" db:"amount_paid"`
 	Items                 []GetInvoiceItemResponse `json:"items"`
 }
 
@@ -75,5 +76,12 @@ type UpdateInvoiceInput struct {
 	CustomerEmail *string    `json:"customer_email,omitempty"`
 	Currency      *string    `json:"currency,omitempty"`
 	Total         *uint      `json:"total,omitempty"`
+	AmountPaid    *uint      `json:"amount_paid,omitempty"`
 	DueDate       *time.Time `json:"due_date,omitempty"`
+}
+
+type PayInvoiceInput struct {
+	Amount        uint    `json:"amount"`
+	Currency      string  `json:"currency"`
+	CustomerEmail *string `json:"customer_email" db:"customer_email"`
 }

@@ -32,6 +32,7 @@ type Invoice struct {
 	CustomerEmail         *string       `json:"customer_email" db:"customer_email"`
 	AllowMultiplePayments bool          `json:"allow_multiple_payments" db:"allow_multiple_payments"`
 	Currency              string        `json:"currency"`
+	AmountPaid            uint          `json:"amount_paid" db:"amount_paid"`
 	Total                 uint          `json:"total"`
 	DueDate               *time.Time    `json:"due_date" db:"due_date"`
 	CreatedAt             time.Time     `json:"created_at" db:"created_at"`
@@ -46,4 +47,15 @@ type InvoiceItem struct {
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 	InvoiceID string    `json:"invoice_id" db:"invoice_id"`
+}
+
+type Payment struct {
+	ID            string    `json:"id"`
+	InvoiceID     string    `json:"invoice_id" db:"invoice_id"`
+	Amount        uint      `json:"amount"`
+	Reference     string    `json:"reference"`
+	Currency      string    `json:"currency"`
+	CustomerEmail *string   `json:"customer_email" db:"customer_email"`
+	CreatedAt     time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at" db:"updated_at"`
 }

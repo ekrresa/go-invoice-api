@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"fmt"
-	"log"
 	"strings"
 
 	"github.com/ekrresa/invoice-api/pkg/models"
@@ -21,7 +19,6 @@ func (r *Repository) CreateInvoice(userID string, newInvoice *models.CreateInvoi
 		invoiceID, userID, newInvoice.Description, newInvoice.Status, newInvoice.CustomerName, newInvoice.CustomerEmail, newInvoice.AllowMultiplePayments, newInvoice.Currency, newInvoice.Total, newInvoice.DueDate)
 
 	if invoiceInsertErr != nil {
-		log.Println(invoiceInsertErr.Error(), "Line 23")
 		tx.Rollback()
 		return invoiceInsertErr
 	}
@@ -31,13 +28,10 @@ func (r *Repository) CreateInvoice(userID string, newInvoice *models.CreateInvoi
 			newInvoice.Items[index].InvoiceID = invoiceID
 		}
 
-		fmt.Println(newInvoice.Items)
-
 		var _, invoiceItemsInsertErr = tx.NamedExec(`INSERT INTO invoice_items (invoice_id, name, quantity, unit_price)
 		 VALUES (:invoice_id, :name, :quantity, :unit_price)`, newInvoice.Items)
 
 		if invoiceItemsInsertErr != nil {
-			log.Println(invoiceItemsInsertErr.Error(), "Line 37")
 			tx.Rollback()
 			return invoiceItemsInsertErr
 		}
