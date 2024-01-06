@@ -320,3 +320,16 @@ func (h *invoiceHandler) PayAnInvoice(w http.ResponseWriter, r *http.Request, us
 
 	helpers.SuccessResponse(w, &payment, "Payment was successful", http.StatusOK)
 }
+
+func (h *invoiceHandler) GetPaymentsOfInvoice(w http.ResponseWriter, r *http.Request, user *models.User) {
+	var invoiceID = chi.URLParam(r, "invoiceID")
+
+	var payments, err = h.repo.ListPaymentsOfAnInvoice(invoiceID)
+
+	if err != nil {
+		helpers.ErrorResponse(w, "Error getting payments", http.StatusInternalServerError)
+		return
+	}
+
+	helpers.SuccessResponse(w, &payments, "Payments retrieved successfully", http.StatusOK)
+}

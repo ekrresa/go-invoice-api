@@ -60,3 +60,11 @@ func (r *Repository) PayAnInvoice(invoice models.Invoice, input models.PayInvoic
 
 	return &payment, nil
 }
+
+func (r *Repository) ListPaymentsOfAnInvoice(invoiceID string) ([]models.Payment, error) {
+	var payments = []models.Payment{}
+
+	var err = r.db.Select(&payments, `SELECT * FROM payments WHERE invoice_id = $1`, invoiceID)
+
+	return payments, err
+}

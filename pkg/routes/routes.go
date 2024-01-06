@@ -26,4 +26,5 @@ func RegisterRoutes(r *chi.Mux, db *sqlx.DB) {
 	r.Post("/invoices/{invoiceID}/void", middleware.AuthenticateApiKey(invoiceHandler.VoidInvoice))
 
 	r.Post("/invoices/{invoiceID}/pay", middleware.AuthenticateApiKey(invoiceHandler.PayAnInvoice))
+	r.Get("/invoices/{invoiceID}/payments", middleware.AuthenticateApiKey(invoiceHandler.GetPaymentsOfInvoice))
 }
